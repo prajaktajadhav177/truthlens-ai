@@ -36,6 +36,14 @@ Map<String, dynamic> getComparisonData(String text) {
   };
 }
 
+Color _getScoreColor(String score) {
+  int val = int.tryParse(score) ?? 0;
+
+  if (val < 30) return Colors.red;
+  if (val < 70) return Colors.orange;
+  return Colors.green;
+}
+
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
@@ -99,10 +107,16 @@ final history = keys.map((key) => box.get(key)).toList();
     ? TextField(
         controller: searchController,
         autofocus: true,
-        decoration: const InputDecoration(
-          hintText: "Search history...",
-          border: InputBorder.none,
-        ),
+        decoration: InputDecoration(
+  hintText: "Search history...",
+  filled: true,
+  fillColor: Colors.grey.shade100,
+  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(20),
+    borderSide: BorderSide.none,
+  ),
+),
         onChanged: (value) {
           setState(() {
             searchQuery = value.toLowerCase();
@@ -141,14 +155,32 @@ final history = keys.map((key) => box.get(key)).toList();
   ],
 ),
      body: history.isEmpty
-    ? const Center(child: Text("No history yet"))
+    ? Center(
+  child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(Icons.history, size: 50, color: Colors.indigo.shade200),
+      const SizedBox(height: 12),
+      const Text(
+        "No history yet",
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      ),
+      const SizedBox(height: 6),
+      Text(
+        "Start analyzing posts to see insights here",
+        style: TextStyle(color: Colors.grey.shade600),
+      ),
+    ],
+  ),
+)
     : Column(
         children: [
          
 
           Expanded(
-            child: ListView.builder(
+            child: ListView.separated(
               itemCount: history.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 4),
               itemBuilder: (context, index) {
   final item = history[index];
 
@@ -180,64 +212,115 @@ time = DateFormat('dd MMM, hh:mm a').format(dateTime);
   time = "";
 }
 
-return Container(
+return AnimatedContainer(
+    duration: const Duration(milliseconds: 200),
   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   decoration: BoxDecoration(
-    borderRadius: BorderRadius.circular(16),
-    gradient: LinearGradient(
-      colors: [
-        Colors.white.withOpacity(0.6),
-        Colors.white.withOpacity(0.2),
-      ],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
+  color: Colors.white,
+  borderRadius: BorderRadius.circular(16),
+  border: Border(
+    left: BorderSide(
+      color: _getScoreColor(score),
+      width: 4,
     ),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withOpacity(0.1),
-        blurRadius: 10,
-        offset: const Offset(0, 4),
-      ),
-    ],
-    border: Border.all(color: Colors.white.withOpacity(0.3)),
   ),
-  child: ListTile(
-    title: RichText(
-  maxLines: 2,
-  overflow: TextOverflow.ellipsis,
-  text: TextSpan(
-    children: highlightText(inputRaw, searchQuery),
-    style: const TextStyle(color: Colors.black),
-  ),
+  boxShadow: [
+    BoxShadow(
+      color: Colors.black.withOpacity(0.05),
+      blurRadius: 10,
+      offset: const Offset(0, 4),
+    ),
+  ],
 ),
-    subtitle: Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Text("📊 Score: $score\n🕒 $time"),
-    ),    isThreeLine: true,
-
-    trailing: IconButton(
-      icon: const Icon(Icons.delete, color: Colors.red),
-      onPressed: () {
-        final box = Hive.box('historyBox');
-        box.delete(keys[index]);// correct index
-        setState(() {}); // refresh UI
-      },
-    ),
-
+  child: Padding(
+padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),    child: Material(
+      color: Colors.transparent,
+  child: InkWell(
+    splashColor: Colors.indigo.withOpacity(0.1),
+highlightColor: Colors.transparent,
+    borderRadius: BorderRadius.circular(16),
     onTap: () {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => 
-ResultScreen(
-  result: result,
-  recommendation: "",
-  showAlert: comparisonData["score"] > 40,
-),
+          builder: (_) => ResultScreen(
+            result: result,
+            recommendation: "",
+            showAlert: comparisonData["score"] > 40,
+          ),
         ),
       );
     },
+      child: ListTile(
+        title: RichText(
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        children: highlightText(inputRaw, searchQuery),
+        style: const TextStyle(
+  color: Colors.black,
+  fontSize: 15,
+  fontWeight: FontWeight.w500,
+),
+      ),
+      ),
+        subtitle: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 6),
+      
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),              decoration: BoxDecoration(
+                color: _getScoreColor(score).withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                "Score: $score",
+                style: TextStyle(
+                  fontSize: 13,
+                    letterSpacing: 0.3,
+                  fontWeight: FontWeight.w600,
+                  color: _getScoreColor(score),
+                ),
+              ),
+            ),
+      
+            const SizedBox(width: 10),
+      
+            Text(
+              time,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ],
+      ),   isThreeLine: true,
+      
+        trailing: IconButton(
+          icon: Container(
+  padding: const EdgeInsets.all(6),
+  decoration: BoxDecoration(
+    color: Colors.grey.shade100,
+    shape: BoxShape.circle,
   ),
+  child: Icon(Icons.delete_outline, size: 18, color: Colors.grey.shade600),
+),
+          onPressed: () {
+            final box = Hive.box('historyBox');
+            box.delete(keys[index]);// correct index
+            setState(() {}); // refresh UI
+          },
+        ),
+      
+        ),
+    ),
+  ),
+)
 );
               },
             ),

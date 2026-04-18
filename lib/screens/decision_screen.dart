@@ -10,7 +10,7 @@ class DecisionScreen extends StatefulWidget {
 }
 
 Map<String, String> parseChat(String text) {
-  text = text.replaceAll("**", ""); // remove markdown
+  text = text.replaceAll("**", ""); 
 
   final suggestion = RegExp(r"Suggestion:\s*(.*?)(\n|$)", dotAll: true)
       .firstMatch(text)
@@ -32,7 +32,7 @@ Map<String, String> parseChat(String text) {
 }
 
 class _DecisionScreenState extends State<DecisionScreen> {
-  TextEditingController _controller = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool isLoading = false;
   List<Map<String, String>> messages = [];
@@ -112,9 +112,9 @@ bool _isStructured(String text) {
           margin: const EdgeInsets.symmetric(vertical: 6),
           padding: const EdgeInsets.all(12),
          decoration: BoxDecoration(
-  color: isUser
-      ? Colors.blue.shade100
-      : Colors.grey.shade100,
+ color: isUser
+    ? const Color(0xFFE0E7FF)
+    : Colors.white,
   borderRadius: BorderRadius.circular(14),
   boxShadow: [
     BoxShadow(
@@ -124,7 +124,7 @@ bool _isStructured(String text) {
     )
   ],
 ),
-         child: msg["text"] == "..."
+        child: msg["text"] == "..."
     ? const Center(
         child: SizedBox(
           height: 18,
@@ -133,16 +133,36 @@ bool _isStructured(String text) {
         ),
       )
     : msg["role"] == "bot"
-        ? _isStructured(msg["text"]!)
-            ? _buildBotResponse(msg["text"]!)
-            : Text(
-                msg["text"]!,
-                style: const TextStyle(fontSize: 14),
-              )
-        : Text(
-            msg["text"]!,
-            style: const TextStyle(fontSize: 14),
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 🔥 ADD THIS BLOCK
+              if (msg["text"] != "...") ...[
+                Row(
+                  children: const [
+                    Icon(Icons.auto_awesome,
+                        size: 14, color: Colors.indigo),
+                    SizedBox(width: 4),
+                    Text(
+                      "AI Insight",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.indigo,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+              ],
+
+              // EXISTING CONTENT
+              _isStructured(msg["text"]!)
+                  ? _buildBotResponse(msg["text"]!)
+                  : Text(msg["text"]!, style: const TextStyle(fontSize: 14)),
+            ],
           )
+        : Text(msg["text"]!, style: const TextStyle(fontSize: 14)),
     
         ),
       ),
@@ -170,14 +190,33 @@ bool _isStructured(String text) {
         child: Column(
           children: [
             Expanded(
-          child: messages.isEmpty
-        ? Center(
-            child: Text(
-              "Ask something like:\n\n• Which tech should I learn?\n• I'm confused about career\n• What should I do next?",
-              textAlign: TextAlign.center,
+          child: messages.length == 1
+    ? Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.psychology,
+                size: 50, color: Colors.indigo.shade200),
+
+            const SizedBox(height: 12),
+
+            const Text(
+              "Confused about your next step?",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            Text(
+              "Ask anything about career, skills, or decisions.",
               style: TextStyle(color: Colors.grey.shade600),
             ),
-          )
+          ],
+        ),
+      )
         : ListView.builder(
             controller: _scrollController,
             padding: const EdgeInsets.all(10),
@@ -188,61 +227,73 @@ bool _isStructured(String text) {
           ),
         ),
         
-            // INPUT BAR
-            Padding(
-          padding: const EdgeInsets.all(10),
+           Padding(
+  padding: const EdgeInsets.all(10),
+  child: Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+
+      // ✅ QUICK QUESTIONS (TOP)
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 4.0,right: 4),
           child: Row(
             children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 6,
-                )
-              ],
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    onSubmitted: (_) => _sendMessage(),
-                    decoration: InputDecoration(
-                      hintText: "Ask your question...",
-                      filled: true,
-                      fillColor: Colors.grey.shade100,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: Colors.blue,
-                  child: IconButton(
-                    onPressed: _sendMessage,
-                    icon: const Icon(Icons.send, color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+              _quickQuestion("Which tech should I learn?"),
+              _quickQuestion("DSA or Web Dev?"),
+              _quickQuestion("Am I too late to start?"),
             ],
           ),
-        )
+        ),
+      ),
+
+      const SizedBox(height: 10),
+
+      // ✅ INPUT BAR (CLEAN)
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.chat_bubble_outline, size: 18),
+            const SizedBox(width: 8),
+
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                onSubmitted: (_) => _sendMessage(),
+                decoration: const InputDecoration(
+                  hintText: "Ask about your decision...",
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+
+            IconButton(
+              onPressed: _sendMessage,
+              icon: const Icon(Icons.send),
+              color: Colors.indigo,
+            ),
           ],
         ),
       ),
+    ],
+  ),
+),
+
+        
+const SizedBox(height: 10),
+            ],
+          ),
+        )
+          
+        
+      
     );
   }
 
@@ -293,6 +344,30 @@ Widget _section(String title, String content, IconData icon, Color color) {
           ),
         ),
       ],
+    ),
+  );
+}
+
+Widget _quickQuestion(String text) {
+  return Padding(
+    padding: const EdgeInsets.only(right: 8),
+    child: GestureDetector(
+      onTap: () {
+        _controller.text = text;
+        _sendMessage();
+      },
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.indigo.shade50,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 12),
+        ),
+      ),
     ),
   );
 }

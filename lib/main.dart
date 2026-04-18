@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:truth_lens/screens/home_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:truth_lens/screens/main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,8 +19,28 @@ class TruthLensApp extends StatelessWidget {
     return  MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'RealityCheck AI',
-      theme: ThemeData(primarySwatch:Colors.blue),
-      home: HomeScreen()
+      theme: ThemeData(
+          textTheme: GoogleFonts.poppinsTextTheme(),
+  primaryColor: const Color(0xFF4F46E5), // Indigo
+  scaffoldBackgroundColor: const Color(0xFFF9FAFB),
+
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Colors.white,
+    foregroundColor: Colors.black,
+    elevation: 0,
+  ),
+
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF4F46E5),
+      foregroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+    ),
+  ),
+),
+      home: MainScreen()
     );
   }
 }
