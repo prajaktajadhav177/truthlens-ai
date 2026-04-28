@@ -3,10 +3,12 @@ import 'package:http/http.dart' as http;
 
 class AIService{
 
-  static const String apiKey="AIzaSyD8yIOdR3s0GihjznlX7Qijpr207VSwV0I";
+  static const String apiKey="AIzaSyAR-nZ2LeoEx3b5xKRqTKhhfoPZxOSjU7E";
 static Future<String> analyzeText(String input) async {
   final url =
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+
+      
 
   try {
     final response = await http.post(
@@ -85,17 +87,17 @@ static Future<String> getDecision(String input) async {
       Uri.parse(url),
       headers: {
         "Content-Type": "application/json",
-        "X-goog-api-key": apiKey, 
+        "X-goog-api-key": apiKey,
       },
       body: jsonEncode({
         "contents": [
           {
             "parts": [
               {
-               "text": """
+                "text": """
 You are a friendly mentor helping a student.
 
-Respond in this format:
+Respond EXACTLY in this format:
 
 Suggestion:
 <short clear answer>
@@ -121,13 +123,20 @@ Question:
     print("DECISION STATUS: ${response.statusCode}");
     print("DECISION BODY: ${response.body}");
 
-    final data = jsonDecode(response.body);
-
-    if (data['candidates'] != null && data['candidates'].isNotEmpty) {
-      return data['candidates'][0]['content']['parts'][0]['text'];
+    if (response.statusCode != 200) {
+      return "API Error: ${response.statusCode}";
     }
 
-    return "No response from AI";
+    final data = jsonDecode(response.body);
+
+    if (data['candidates'] == null || data['candidates'].isEmpty) {
+      return "No response from AI";
+    }
+
+    final text =
+        data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+
+    return text ?? "No response from AI";
   } catch (e) {
     print("DECISION ERROR: $e");
     return "Error occurred";

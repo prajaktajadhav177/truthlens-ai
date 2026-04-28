@@ -81,7 +81,7 @@ void initState() {
 
   messages.add({
     "role": "bot",
-    "text": "Hey 👋 I'm your AI mentor.\nAsk me anything about career, confusion, or decisions."
+    "text": "Hey, I'm your AI mentor.\nAsk me anything about career, confusion, or decisions."
   });
 }
 

@@ -312,8 +312,8 @@ highlightColor: Colors.transparent,
 ),
           onPressed: () {
             final box = Hive.box('historyBox');
-            box.delete(keys[index]);// correct index
-            setState(() {}); // refresh UI
+            box.delete(keys[index]);
+            setState(() {}); 
           },
         ),
       
